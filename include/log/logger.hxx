@@ -58,6 +58,7 @@ namespace lg
 #define LOG_FMT_BASE( _logexpr, _fmtstr, ...) _logexpr << ::NS_UTIL()::format(_fmtstr, __VA_ARGS__)
 #define MACRO_WRAP_BASE( _expr ) do { _expr } while(0)
 #define LOG_BARE_FMT( _fmtstr, ... ) LOG_FMT_BASE( LOG_BARE(), _fmtstr, __VA_ARGS__ )
+#define LOG_BARE_EMPTY() MACRO_WRAP_BASE(LOG_BARE();)
 // ---
 
 // Log Macros - basic

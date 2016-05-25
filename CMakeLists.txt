@@ -32,9 +32,12 @@ project(log)
 set(LIBLOG_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE INTERNAL "")
 set(LIBLOG_LIBRARIES log CACHE INTERNAL "")
 
-add_subdirectory(ut)
+# Only include ut target if it isnt already included by something else
+if (NOT TARGET ut)
+	add_subdirectory(ut)
+endif()
 
-// Add libut and own include directories to allow own source files to import headers more easily
+# Add libut and own include directories to allow own source files to import headers more easily
 include_directories(${LIBUT_INCLUDE_DIRS} ${LIBLOG_INCLUDE_DIRS}/log)
 
 # Set source files

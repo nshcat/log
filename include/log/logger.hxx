@@ -104,8 +104,8 @@ namespace lg
 // ---
 
 // Log macros - MT support
-#define LOG_LOCK() MACRO_WRAP_BASE(logger().lock();)
-#define LOG_UNLOCK() MACRO_WRAP_BASE(logger().unlock();)
+#define LOG_LOCK() MACRO_WRAP_BASE(LOGGER().lock();)
+#define LOG_UNLOCK() MACRO_WRAP_BASE(LOGGER().unlock();)
 
 #define LOG_BEGIN() LOG_LOCK()
 #define LOG_END() LOG_UNLOCK()

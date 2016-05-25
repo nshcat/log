@@ -20,9 +20,10 @@ namespace lg
 				<< std::right
 				<< entry.time_string()
 				<< "] "
+				<< ut::foreground(entry.color())
 				<< std::setw(7)
 				<< std::right
-				<< ut::foreground(entry.color()) << entry.level_string() << ut::reset_color
+				<< entry.level_string() << ut::reset_color
 				<< "| ";
 		}
 		str	<< entry.message()

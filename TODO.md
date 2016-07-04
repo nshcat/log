@@ -2,6 +2,7 @@
 
 ###### Implementation
 
+- [ ] Implement multithreading using message queue
 - [ ] Use color and format manipulators from libut. (after they have been added)
 - [ ] Use ut::string_view to avoid temporary std::strings when user supplies literal
 - [x] Move the severity threshold from global to output based. This will make it possible to have log targets with different severity thresholds.

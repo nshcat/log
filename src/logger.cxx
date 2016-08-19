@@ -25,7 +25,10 @@ namespace lg
 	void logger::_add_target(ut::observer_ptr<log_target> target)
 	{
 		if(target)
+		{
 			m_Targets.push_back(target);
+			m_Empty = false;
+		}
 		else throw std::runtime_error("logger::add_target: target==nullptr!");
 	}
 
@@ -36,6 +39,10 @@ namespace lg
 
 	void logger::operator+= (const log_entry& entry)
 	{
+		// Avoid locking if there is no target
+		if(m_Empty())
+			return;
+		
 		std::lock_guard<std::recursive_mutex> lock(m_Mtx);
 
 		for (auto& target : m_Targets)

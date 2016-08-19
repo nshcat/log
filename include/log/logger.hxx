@@ -4,6 +4,7 @@
 #include <string>
 #include <mutex>
 #include <ut/observer_ptr.hxx>
+#include <ut/format.hxx>
 
 #include "log_entry.hxx"
 
@@ -13,6 +14,8 @@ namespace lg
 
 	class logger
 	{
+		using container_type = std::vector<ut::observer_ptr<log_target>>;
+		
 		private:
 			logger()
 			{
@@ -24,8 +27,10 @@ namespace lg
 		public:
 			static logger& instance();
 
-			// Adds default log target with given threshold level
-			static void default_init(severity_level p_lvl = severity_level::debug);		
+			// Initializes and adds default log target with given threshold level
+			static void default_init(severity_level p_lvl = severity_level::debug);	
+
+			// Add custom log target.
 			static void add_target(ut::observer_ptr<log_target> p_target);
 
 		public:			
@@ -39,8 +44,9 @@ namespace lg
 			void _add_target(ut::observer_ptr<log_target> p_target);
 
 		private:
-			std::vector<ut::observer_ptr<log_target>>		m_Targets;		// Non-owning
-			std::recursive_mutex							m_Mtx;
+			bool m_Empty{true};		// Whether the logger has no targets
+			container_type m_Targets;	// Non-owning
+			std::recursive_mutex m_Mtx;
 	};
 }
 
@@ -55,7 +61,7 @@ namespace lg
 #define LOG_LVL_BASE( _level, _clr ) LOG() << ::NS()::severity_level::_level << ::NS_UTIL()::console_color::_clr
 #define LOG_IF_BASE( _expr, _logexpr ) if(_expr) _logexpr 
 #define LOG_EXCEPT_BASE( _logexpr ) _logexpr << "An exception was thrown: "
-#define LOG_FMT_BASE( _logexpr, _fmtstr, ...) _logexpr << ::NS_UTIL()::format(_fmtstr, __VA_ARGS__)
+#define LOG_FMT_BASE( _logexpr, _fmtstr, ...) _logexpr << ::NS_UTIL()::sprintf(_fmtstr, __VA_ARGS__)
 #define MACRO_WRAP_BASE( _expr ) do { _expr } while(0)
 #define LOG_BARE_FMT( _fmtstr, ... ) LOG_FMT_BASE( LOG_BARE(), _fmtstr, __VA_ARGS__ )
 #define LOG_BARE_EMPTY() MACRO_WRAP_BASE(LOG_BARE();)

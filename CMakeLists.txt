@@ -24,9 +24,6 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(log)
 
-# C++ Standard
-## set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-
 
 # Set user variables
 set(LIBLOG_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE INTERNAL "")
@@ -49,6 +46,8 @@ set(SOURCE_FILES
 
 # Build library
 add_library(log ${SOURCE_FILES})
+
+target_link_libraries(log ${LIBUT_LIBRARIES})
 
 # Require support for at least C++14.
 set_property(TARGET log PROPERTY CXX_STANDARD 14)

@@ -1,12 +1,26 @@
+/*
+	Copyright (c) 2016 nshcat
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
+	to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute,
+	sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+	INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+	WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 #include <utility>
 #include <ctime>
 #include <iomanip>
 #include <vector>
 #include <chrono>
+#include <ut/cast.hxx>
 
 #include "log_entry.hxx"
-#include "utility.hxx"
-
 
 namespace lg
 {
@@ -15,7 +29,6 @@ namespace lg
 	{
 
 	}
-
 
 	log_entry::log_entry(std::string file, size_t line, bool is_bare)
 		:	m_File{ std::move(file) }, 
@@ -35,36 +48,23 @@ namespace lg
 		m_Timestamp = ss.str();
 	}
 
-	log_entry& log_entry::operator<< (const std::exception& ex)
+	log_entry log_entry::operator<< (const std::exception& ex) &&
 	{
 		m_Message << ex.what();
-		return *this;
+		return std::move(*this);
 	}
 
-	log_entry& log_entry::operator<< (severity_level lvl)
+	log_entry log_entry::operator<< (severity_level lvl) &&
 	{
 		m_Level = lvl;
-		return *this;
+		return std::move(*this);
 	}
 
-	log_entry& log_entry::operator<< (ut::console_color clr)
+	log_entry log_entry::operator<< (ut::console_color clr) &&
 	{
 		m_Color = clr;
-		return *this;
+		return std::move(*this);
 	}
-
-	log_entry& log_entry::operator<< (const std::string& str)
-	{
-		m_Message << str;
-		return *this;
-	}
-
-	// TODO fix this
-	/*log_entry& log_entry::operator<< (const FormatManipulator& manip)
-	{
-		m_Message << manip.str();
-		return *this;
-	}*/
 
 	std::string log_entry::message() const
 	{
@@ -118,7 +118,7 @@ namespace lg
 		};
 
 		// Get underlying type and return string
-		auto x = internal::enum_to_ult(m_Level);
+		std::size_t x = ut::enum_cast(m_Level);
 		
 		// Check for correctness
 		if(x < sizeof(names))

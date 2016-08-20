@@ -1,8 +1,29 @@
+// logger: Main logger class
+/*
+	Copyright (c) 2016 nshcat
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
+	to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute,
+	sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+	INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+	WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 #pragma once
 
 #include <vector>
 #include <string>
+#include <condition_variable>
+#include <thread>
 #include <mutex>
+#include <queue>
+#include <chrono>
+#include <atomic>
 #include <ut/observer_ptr.hxx>
 #include <ut/format.hxx>
 
@@ -15,38 +36,71 @@ namespace lg
 	class logger
 	{
 		using container_type = std::vector<ut::observer_ptr<log_target>>;
+		using queue_type = std::queue<log_entry>;
 		
 		private:
-			logger()
-			{
-			}
+			logger();
+			~logger();
 
 			logger(const logger&) = delete;
 			logger& operator= (const logger&) = delete;
 
 		public:
+			// Retrieve global logger instance.
 			static logger& instance();
 
 			// Initializes and adds default log target with given threshold level
 			static void default_init(severity_level p_lvl = severity_level::debug);	
 
+			// Initialize logger without any log targets
+			static void null_init();
+			
 			// Add custom log target.
 			static void add_target(ut::observer_ptr<log_target> p_target);
 
-		public:			
-			void operator+= (const log_entry& p_entry);
+		public:
+			// Queue new log entry for later processing and dispatching.
+			void operator+= (log_entry&& p_entry);
 
 		public:
+			// Begin LOCK/UNLOCK block
 			void lock();
+			
+			// End LOCK/UNLOCK block. Will also notify the worker thread
+			// to make sure all data will be written after a block.
 			void unlock();
 
 		private:
 			void _add_target(ut::observer_ptr<log_target> p_target);
+			
+		private:
+			// Worker thread function
+			void do_work();
+			
+			// Notify worker thread of new data
+			void notify();
+			
+			// Request worker thread shutdown
+			void kill_thread();
+			
+			// Dispatch log entry to all registered log targets
+			void dispatch(const log_entry&);
 
 		private:
-			bool m_Empty{true};		// Whether the logger has no targets
-			container_type m_Targets;	// Non-owning
-			std::recursive_mutex m_Mtx;
+			std::atomic_bool m_Empty{true};		// Whether the logger has no targets
+			container_type m_Targets;			// Non-owning pointers to log targets
+			queue_type m_WorkQueue;				// Queue that holds all log entry data
+			
+		private:
+			bool m_IsLocked{false};				// Whether we currently are in a LOCK/UNLOCK block
+			std::recursive_mutex m_Mtx;			// Access mutex for user threads
+			std::condition_variable m_WorkCv;	// Used to notify the worker thread of new data
+			std::mutex m_CvMtx;					// Mutex used by the condition_variable
+			
+			bool m_HasWork{false};				// Whether there is work pending to be processed
+			std::atomic_bool m_ShouldStop{false};	// Whether the worker thread is requested to stop
+			std::thread m_Worker;				// Worker thread
+			
 	};
 }
 

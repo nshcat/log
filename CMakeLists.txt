@@ -35,6 +35,11 @@ add_library(log ${SOURCE_FILES})
 # Link to libut. This will also add all required include directories.
 target_link_libraries(log ${LIBUT_LIBRARIES})
 
+# Link to threading library if on posix or msys
+if((NOT WIN32) OR MSYS)
+	target_link_libraries(log pthread)
+endif()
+
 # Add top include directory as public dependency.
 # This automatically adds them to parent projects when linking to libcl.
 target_include_directories(log PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

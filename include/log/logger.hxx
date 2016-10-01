@@ -90,16 +90,17 @@ namespace lg
 			std::atomic_bool m_Empty{true};		// Whether the logger has no targets
 			container_type m_Targets;			// Non-owning pointers to log targets
 			queue_type m_WorkQueue;				// Queue that holds all log entry data
+			queue_type m_TempQueue;				// Queue that holds queue tail during dispatch
 			
 		private:
 			bool m_IsLocked{false};				// Whether we currently are in a LOCK/UNLOCK block
-			std::recursive_mutex m_Mtx;			// Access mutex for user threads
-			std::condition_variable m_WorkCv;	// Used to notify the worker thread of new data
+			std::recursive_mutex m_Mtx;			// Access mutex for producer threads
+			std::condition_variable m_WorkCv;	// Used to notify the consumer thread of new data
 			std::mutex m_CvMtx;					// Mutex used by the condition_variable
 			
 			bool m_HasWork{false};				// Whether there is work pending to be processed
 			std::atomic_bool m_ShouldStop{false};	// Whether the worker thread is requested to stop
-			std::thread m_Worker;				// Worker thread
+			std::thread m_Worker;				// Worker thread		
 			
 	};
 }

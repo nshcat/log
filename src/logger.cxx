@@ -22,6 +22,8 @@
 
 namespace lg
 {
+	using namespace std::chrono_literals;
+
 	logger::logger()
 		: m_Worker{ &logger::do_work, this }
 	{
@@ -63,32 +65,65 @@ namespace lg
 	// Worker thread function
 	void logger::do_work()
 	{
+		// Maximum duration to wait on condition variable.
+		const auto t_maxWait = 100ms;
+		
+		// Local work indicator. Is used after lock is released.
+		bool t_hasWork{};
+		
 		// Loop until stop is requested
 		while(!m_ShouldStop.load())
 		{
-			std::unique_lock<std::mutex> lck(m_CvMtx);
-			                             
-			// Block until user thread notifies about new work
-			m_WorkCv.wait(lck);
-			
-			// Check if there really is work, since the block
-			// can sometimes release even if there was no notification.
-			// This also happens when a worker thread stop was requested.
-			if(m_HasWork)
+			// Critical section begin
 			{
-				// Lock mutex. This stops user threads from pushing new entries while we are
-				// dispatching.
-				std::lock_guard<std::recursive_mutex> qlck(m_Mtx);
+				std::unique_lock<std::mutex> lck(m_CvMtx);
+											 
+				// Block until user thread notifies about new work.
+				m_WorkCv.wait_for(lck, t_maxWait);
 						
-				// Dispatch all work items.
-				while(!m_WorkQueue.empty())
+				// Check if there really is work, since the block
+				// will periodically release even if there was no notification.
+				// This is done to process work items that were added in the brief period
+				// inbetween cv lock release and next cv wait (aka. time spent processing items).
+				// This is unfortunately a small inconvienience introduced by trying to spend as 
+				// little time as possible on producer side.
+				// This also happens when a worker thread stop was requested.
+				if(m_HasWork)
 				{
-					dispatch(m_WorkQueue.front());
-					m_WorkQueue.pop();
+					// Lock mutex. This stops user threads from pushing new entries while we are
+					// dispatching.
+					std::lock_guard<std::recursive_mutex> qlck(m_Mtx);
+							
+					// Indicate that there indeed was data.
+					// We can't use m_HasWork after releasing the lock for obvious reasons.
+					t_hasWork = true;
+						
+					// Move all elements to temporary queue.
+					// This way we lock as briefly as possible, since dispatching could involve I/O.
+					while(!m_WorkQueue.empty())
+					{
+						m_TempQueue.emplace(::std::move(m_WorkQueue.front()));
+						m_WorkQueue.pop();
+					}
+					
+					// Reset work indicator. Everything was dispatched.
+					m_HasWork = false;
+				}			
+			}
+			// Critical section end
+			
+			// Lock is now released. If there was work, dispatch it now.
+			if(t_hasWork)
+			{			
+				// Lock is released. We can now take as much time as needed to dispatch entries.
+				while(!m_TempQueue.empty())
+				{
+					dispatch(m_TempQueue.front());
+					m_TempQueue.pop();
 				}
 				
-				// Reset work indicator. Everything was dispatched.
-				m_HasWork = false;
+				// Reset local work indicator
+				t_hasWork = false;
 			}
 		}
 	}

@@ -66,7 +66,7 @@ namespace lg
 	void logger::do_work()
 	{
 		// Maximum duration to wait on condition variable.
-		const auto t_maxWait = 100ms;
+		const auto t_maxWait = 30ms;
 		
 		// Local work indicator. Is used after lock is released.
 		bool t_hasWork{};

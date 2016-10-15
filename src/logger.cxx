@@ -116,11 +116,20 @@ namespace lg
 			if(t_hasWork)
 			{			
 				// Lock is released. We can now take as much time as needed to dispatch entries.
-				while(!m_TempQueue.empty())
+				
+				// Lock concurrent access to log target data structure.
+				// Begin critical section
 				{
-					dispatch(m_TempQueue.front());
-					m_TempQueue.pop();
+					std::lock_guard<std::mutex> lck(m_DataMutex);
+					
+					while(!m_TempQueue.empty())
+					{
+						dispatch(m_TempQueue.front());
+						m_TempQueue.pop();
+					}			
 				}
+				// End critical section
+				
 				
 				// Reset local work indicator
 				t_hasWork = false;
@@ -169,8 +178,15 @@ namespace lg
 
 	void logger::_add_target(ut::observer_ptr<log_target> target)
 	{
+		// Only add if target is a valid pointer
 		if(target)
 		{
+			// Enter critical section since we are accessing data
+			// that can be cocurrently accessed by the worker thread (the target vector).
+			// We want to allow adding log targets _after_ logger initialization.		
+			std::lock_guard<std::mutex> lck(m_DataMutex);
+	
+			// Add target to vector and atomically indicate non-emptiness
 			m_Targets.push_back(target);
 			m_Empty.store(false);
 		}

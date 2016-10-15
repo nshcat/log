@@ -88,6 +88,7 @@ namespace lg
 
 		private:
 			std::atomic_bool m_Empty{true};		// Whether the logger has no targets
+			std::mutex m_DataMutex;				// Mutex used to guard logger data access
 			container_type m_Targets;			// Non-owning pointers to log targets
 			queue_type m_WorkQueue;				// Queue that holds all log entry data
 			queue_type m_TempQueue;				// Queue that holds queue tail during dispatch

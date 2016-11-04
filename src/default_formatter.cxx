@@ -43,5 +43,7 @@ namespace lg
 		}
 		str	<< entry.message()
 			<< "\n";
+			
+		str.flush();
 	}
 }

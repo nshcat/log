@@ -55,6 +55,11 @@ namespace lg
 			// Initialize logger without any log targets
 			static void null_init();
 			
+			// Shutdown the logger, waiting for the working thread to finish.
+			// This guarantuees that all targets are still valid during shutdown
+			// (which automatic destruction not always does)
+			static void shutdown();
+			
 			// Add custom log target.
 			static void add_target(ut::observer_ptr<log_target> p_target);
 
@@ -101,7 +106,9 @@ namespace lg
 			
 			bool m_HasWork{false};				// Whether there is work pending to be processed
 			std::atomic_bool m_ShouldStop{false};	// Whether the worker thread is requested to stop
-			std::thread m_Worker;				// Worker thread		
+			std::thread m_Worker;				// Worker thread
+
+			bool m_IsShutdown{false};			// Whether the logger has already been shut down
 			
 	};
 }

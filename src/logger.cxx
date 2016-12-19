@@ -33,9 +33,15 @@ namespace lg
 	logger::~logger()
 	{
 		// Signal worker thread to stop and block until done
-		kill_thread();
+		if(!m_IsShutdown)
+			kill_thread();
 	}
 	
+	// Shutdown
+	void logger::shutdown()
+	{
+		logger::instance().kill_thread();
+	}
 	
 	// Signal the work thread to stop
 	void logger::kill_thread()
@@ -48,6 +54,8 @@ namespace lg
 		
 		// Block until done
 		m_Worker.join();
+		
+		m_IsShutdown = true;
 	}
 	
 	// Notify worker thread about new data
@@ -88,6 +96,7 @@ namespace lg
 				// This is unfortunately a small inconvienience introduced by trying to spend as 
 				// little time as possible on producer side.
 				// This also happens when a worker thread stop was requested.
+				// If a worker thread stop was requested, everything is flushed out before exit.
 				if(m_HasWork)
 				{
 					// Lock mutex. This stops user threads from pushing new entries while we are

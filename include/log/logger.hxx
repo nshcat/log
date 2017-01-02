@@ -44,6 +44,9 @@ namespace lg
 
 			logger(const logger&) = delete;
 			logger& operator= (const logger&) = delete;
+			
+			logger(logger&&) = delete;
+			logger& operator= (logger&&) = delete;
 
 		public:
 			// Retrieve global logger instance.

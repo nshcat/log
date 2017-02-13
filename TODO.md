@@ -1,5 +1,8 @@
 # liblog TODO list
 
+##### Features
+- [ ] Implement optional remote logging. https://blog.forrestthewoods.com/writing-a-cross-platform-remote-logging-console-in-c-f2e22d3fee5e?gi=9333fd8e7a03#.3qk1rivt8
+
 ###### Implementation
 
 - [ ] Maybe allow options/settings. Like automated blank line after LOCK/UNLOCK block. The tag-based system from libcl could be used for that. (e.g. `lg::logger::init( lg::target(...) )`)

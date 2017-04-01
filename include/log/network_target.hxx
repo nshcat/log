@@ -40,7 +40,10 @@ namespace lg
 		using handle_type = void*;
 
 		public:
-			network_target() = default;
+			network_target()
+				: log_target(severity_level::debug)
+			{}
+
 			network_target(severity_level p_lvl, const ::std::string& p_host, const ::std::string& p_port, const ::std::string& p_src = ::std::string{});
 			~network_target();
 

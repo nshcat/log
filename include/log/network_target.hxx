@@ -13,6 +13,16 @@
 	WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+/*	PROTOCOL:
+ *	
+ *	[u32]	Length of message string
+ *	[u64]	Timestamp (time_t)
+ *	[u32] 	Level
+ *	[u32] 	Is Bare? (0x1 or 0x0)
+ *	N*[u8]	String payload
+ */
+
+
 #pragma once
 
 #include <string>

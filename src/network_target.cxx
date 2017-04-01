@@ -39,8 +39,8 @@ namespace lg
 	}
 
 
-	network_target::network_target(severity_level p_lvl, const ::std::string& p_host, const ::std::string& p_port)
-		: log_target(p_lvl), m_Host{p_host}, m_Port{p_port}, m_InternalData{ new network_target_data() }
+	network_target::network_target(severity_level p_lvl, const ::std::string& p_host, const ::std::string& p_port, const ::std::string& p_src)
+		: log_target(p_lvl), m_Host{p_host}, m_Port{p_port}, m_Src{p_src}, m_InternalData{ new network_target_data() }
 	{
 		connect();
 	}
@@ -97,19 +97,26 @@ namespace lg
 			::std::numeric_limits<::std::uint32_t>::max()
 		);
 
-		const ::std::size_t t_szFixed = 20; // Fixed part of packet
-		const ::std::size_t t_sz = t_szStr + t_szFixed;
+		const ::std::size_t t_szSrc = ::std::min<::std::size_t>(
+			m_Src.length(),
+			::std::numeric_limits<::std::uint32_t>::max()
+		);
+
+		const ::std::size_t t_szFixed = 24; // Fixed part of packet
+		const ::std::size_t t_sz = t_szStr + t_szSrc + t_szFixed;
 
 		// Create buffer for packet
 		::std::ostringstream t_stream{};
 
 		// Write data
 		ut::to_bytes_be<::std::uint32_t>(t_stream, t_szStr);
+		ut::to_bytes_be<::std::uint32_t>(t_stream, t_szSrc);
 		ut::to_bytes_be<::std::uint64_t>(t_stream, p_entry.time());
 		ut::to_bytes_be<::std::uint32_t>(t_stream, ut::enum_cast(p_entry.level()));
 		ut::to_bytes_be<::std::uint32_t>(t_stream, (p_entry.bare() ? 1u : 0u));
 		
 		t_stream.write(p_entry.message().data(), t_szStr);
+		t_stream.write(m_Src.data(), t_szSrc);
 
 		const auto t_result = t_stream.str();
 

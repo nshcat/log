@@ -16,10 +16,12 @@
 /*	PROTOCOL:
  *	
  *	[u32]	Length of message string
+ *	[u32]	Length of source string
  *	[u64]	Timestamp (time_t)
  *	[u32] 	Level
  *	[u32] 	Is Bare? (0x1 or 0x0)
  *	N*[u8]	String payload
+ *	M*[u8]	Source payload
  */
 
 
@@ -38,7 +40,7 @@ namespace lg
 		using handle_type = void*;
 
 		public:
-			network_target(severity_level p_lvl, const ::std::string& p_host, const ::std::string& p_port);
+			network_target(severity_level p_lvl, const ::std::string& p_host, const ::std::string& p_port, const ::std::string& p_src = ::std::string{});
 			~network_target();
 
 			network_target(const network_target&) = delete;
@@ -56,6 +58,7 @@ namespace lg
 		private:
 			::std::string m_Host;
 			::std::string m_Port;
+			::std::string m_Src;
 			handle_type m_InternalData{nullptr};
 	};
 }

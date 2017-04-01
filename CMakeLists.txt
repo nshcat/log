@@ -26,14 +26,17 @@ set(LIBLOG_LIBRARIES log CACHE INTERNAL "")
 # Add libut project directory.
 add_subdirectory(ut)
 
+# Add ASIO project directory.
+add_subdirectory(asio)
+
 # Source files
 file(GLOB SOURCE_FILES src/*.cxx)
 
 # Build as static library
 add_library(log ${SOURCE_FILES})
 
-# Link to libut. This will also add all required include directories.
-target_link_libraries(log ${LIBUT_LIBRARIES})
+# Link to libraries. This will also add all required include directories.
+target_link_libraries(log ${LIBUT_LIBRARIES} ${ASIO_LIBRARIES})
 
 # Link to threading library if on posix or msys
 if((NOT WIN32) OR MSYS)

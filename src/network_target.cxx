@@ -94,12 +94,12 @@ namespace lg
 		// to truncate the message if needed
 		const ::std::size_t t_szStr = ::std::min<::std::size_t>(
 			p_entry.message().length(),
-			::std::numeric_limits<::std::uint32_t>::max()
+			::std::numeric_limits<::std::uint8_t>::max()
 		);
 
 		const ::std::size_t t_szSrc = ::std::min<::std::size_t>(
 			m_Src.length(),
-			::std::numeric_limits<::std::uint32_t>::max()
+			::std::numeric_limits<::std::uint8_t>::max()
 		);
 
 		const ::std::size_t t_szFixed = 24; // Fixed part of packet
@@ -109,11 +109,11 @@ namespace lg
 		::std::ostringstream t_stream{};
 
 		// Write data
-		ut::to_bytes_be<::std::uint32_t>(t_stream, t_szStr);
-		ut::to_bytes_be<::std::uint32_t>(t_stream, t_szSrc);
+		ut::to_bytes_be<::std::uint8_t>(t_stream, t_szStr);
+		ut::to_bytes_be<::std::uint8_t>(t_stream, t_szSrc);
+		ut::to_bytes_be<::std::uint8_t>(t_stream, ut::enum_cast(p_entry.level()));
+		ut::to_bytes_be<::std::uint8_t>(t_stream, (p_entry.bare() ? 1u : 0u));
 		ut::to_bytes_be<::std::uint64_t>(t_stream, p_entry.time());
-		ut::to_bytes_be<::std::uint32_t>(t_stream, ut::enum_cast(p_entry.level()));
-		ut::to_bytes_be<::std::uint32_t>(t_stream, (p_entry.bare() ? 1u : 0u));
 		
 		t_stream.write(p_entry.message().data(), t_szStr);
 		t_stream.write(m_Src.data(), t_szSrc);

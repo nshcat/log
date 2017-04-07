@@ -15,11 +15,11 @@
 
 /*	PROTOCOL:
  *	
- *	[u32]	Length of message string
- *	[u32]	Length of source string
+ *	[u8]	Length of message string
+ *	[u8]	Length of source string
+ *  [u8]	Level
+ *	[u8]	Is Bare? (0x1 or 0x0)
  *	[u64]	Timestamp (time_t)
- *	[u32] 	Level
- *	[u32] 	Is Bare? (0x1 or 0x0)
  *	N*[u8]	String payload
  *	M*[u8]	Source payload
  */

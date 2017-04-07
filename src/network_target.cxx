@@ -102,7 +102,7 @@ namespace lg
 			::std::numeric_limits<::std::uint8_t>::max()
 		);
 
-		const ::std::size_t t_szFixed = 24; // Fixed part of packet
+		const ::std::size_t t_szFixed = 12; // Fixed part of packet
 		const ::std::size_t t_sz = t_szStr + t_szSrc + t_szFixed;
 
 		// Create buffer for packet

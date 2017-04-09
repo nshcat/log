@@ -104,16 +104,12 @@ namespace lg
 					std::lock_guard<std::recursive_mutex> qlck(m_Mtx);
 							
 					// Indicate that there indeed was data.
-					// We can't use m_HasWork after releasing the lock for obvious reasons.
+					// We can't use m_HasWork after releasing the lock because a producer thread
+					// might change it in the meantime.
 					t_hasWork = true;
-						
-					// Move all elements to temporary queue.
-					// This way we lock as briefly as possible, since dispatching could involve I/O.
-					while(!m_WorkQueue.empty())
-					{
-						m_TempQueue.emplace(::std::move(m_WorkQueue.front()));
-						m_WorkQueue.pop();
-					}
+				
+					// Swap empty temporary queue with current work queue. This is an O(1) operation.
+					m_WorkQueue.swap(m_TempQueue);		
 					
 					// Reset work indicator. Everything was dispatched.
 					m_HasWork = false;

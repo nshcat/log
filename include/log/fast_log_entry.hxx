@@ -46,6 +46,7 @@ namespace lg
 					uint32_t, int32_t,
 					uint64_t, int64_t,
 					void*, char*,
+					const void*, const char*,
 					bool,
 					float, double
 			  >
@@ -89,6 +90,18 @@ namespace lg
 		struct convert_pointer <char*>
 		{
 			using type = char*;
+		};
+
+		template< >
+		struct convert_pointer <const char*>
+		{
+			using type = const char*;
+		};
+
+		template< typename T >
+		struct convert_pointer<const T*>
+		{
+			using type = const void*;
 		};
 
 		template< typename T >
@@ -162,6 +175,22 @@ namespace lg
 
 		template< >
 		constexpr entry_type get_entry_type<char*>()
+		{
+			return entry_type::char_ptr;
+		}
+
+
+		// TODO this is technically undefined behaviour (?)
+		// because this causes const pointers to be deserialized as non const
+		// pointers. Maybe add new entry types for const pointers.
+		template< >
+		constexpr entry_type get_entry_type<const void*>()
+		{
+			return entry_type::ptr;
+		}
+
+		template< >
+		constexpr entry_type get_entry_type<const char*>()
 		{
 			return entry_type::char_ptr;
 		}

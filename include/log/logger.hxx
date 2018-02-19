@@ -93,6 +93,9 @@ namespace lg
 			
 			// Dispatch log entry to all registered log targets
 			void dispatch(const log_entry&);
+			
+			// Dispatch all log entries in given queue
+			void dispatch_all(queue_type&);
 
 		private:
 			std::atomic_bool m_Empty{true};		// Whether the logger has no targets

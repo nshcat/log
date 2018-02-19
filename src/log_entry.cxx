@@ -14,11 +14,13 @@
 */
 
 #include <utility>
+#include <array>
 #include <ctime>
 #include <iomanip>
 #include <vector>
 #include <chrono>
 #include <ut/cast.hxx>
+#include <ut/string_view.hxx>
 
 #include "log_entry.hxx"
 
@@ -65,18 +67,29 @@ namespace lg
 		m_Color = clr;
 		return std::move(*this);
 	}
+	
+	log_entry log_entry::operator<< (internal::tag_t tag) &&
+	{
+		m_Tag = tag.value();
+		return std::move(*this);
+	}
 
 	std::string log_entry::message() const
 	{
 		return m_Message.str();
 	}
+	
+	const std::string& log_entry::tag() const
+	{
+		return m_Tag;
+	}
 
-	std::string log_entry::file() const
+	const std::string& log_entry::file() const
 	{
 		return m_File;
 	}
 
-	std::string log_entry::time_string() const
+	const std::string& log_entry::time_string() const
 	{
 		return m_Timestamp;
 	}
@@ -108,7 +121,9 @@ namespace lg
 
 	std::string log_entry::level_string() const
 	{
-		static const char* names[6] =
+		// string_view would be better here, but ut::string_view is missing constexpr
+		// support for the const char* constructor
+		static constexpr ::std::array<const char*, 6> names =
 		{
 			"Fatal",
 			"Error",

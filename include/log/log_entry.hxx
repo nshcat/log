@@ -19,12 +19,34 @@
 #include <sstream>
 #include <ctime>
 #include <exception>
+#include <type_traits>
 #include <ut/console_color.hxx>
+#include <ut/type_traits.hxx>
 
 #include "severity_level.hxx"
+#include "tag.hxx"
 
 namespace lg
 {
+	namespace internal
+	{
+		// Determines if given type is to be considered a "control type" in the
+		// context of the log entry. Examples for "control types" are exceptions,
+		// severity_level or tag_t
+		template< typename T >
+		using is_control_type = ut::disjunction<
+									ut::contains<
+										T,
+										severity_level,
+										internal::tag_t
+									>,
+									::std::is_base_of<::std::exception, T>
+								>;
+								
+		template< typename T >
+		constexpr bool is_control_type_v = is_control_type<T>::value;							
+	}
+
 	class log_entry
 	{
 		public:
@@ -42,8 +64,12 @@ namespace lg
 			log_entry operator<< (severity_level lvl) &&;
 			log_entry operator<< (ut::console_color clr) &&;
 			log_entry operator<< (const std::exception& ex) &&;
+			log_entry operator<< (internal::tag_t tag) &&;	// Passing by value is intended here in order to leverage move semantics
 
-			template< typename T >
+			template<
+				typename T,
+				typename = ::std::enable_if_t<not internal::is_control_type_v<::std::decay_t<T>>>
+			>
 			log_entry operator<< (T&& t) &&
 			{
 				m_Message << ::std::forward<T>(t);
@@ -51,24 +77,26 @@ namespace lg
 			}
 
 		public:
-			bool bare() const;
+			bool bare() const;		
 			const std::time_t& time() const;
 			std::string message() const;
-			std::string file() const;
-			std::string time_string() const;
+			const std::string& file() const;
+			const std::string& time_string() const;
 			size_t line() const;
 			severity_level level() const;
 			std::string level_string() const;
 			ut::console_color color() const;
+			const ::std::string& tag() const;
 
 		private:
+			std::string			m_Tag{};
 			std::stringstream	m_Message;
-			std::string			m_Timestamp;
-			std::string			m_File;
-			bool				m_IsBare;
-			size_t				m_Line;
-			severity_level		m_Level;
-			ut::console_color	m_Color;
+			std::string			m_Timestamp{};
+			std::string			m_File{};
+			bool				m_IsBare{};
+			size_t				m_Line{};
+			severity_level		m_Level{};
+			ut::console_color	m_Color{};
 			std::time_t			m_Time;
 	};
 }

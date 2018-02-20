@@ -129,6 +129,7 @@ namespace lg
 #define LOG_BARE() LOGGER() += ::NS()::log_entry(__FILE__, __LINE__, true)
 #define LOG_BARE_BASE( _level, _clr ) LOG_BARE() << ::NS()::severity_level::_level << ::NS_UTIL()::console_color::_clr
 #define LOG_LVL_BASE( _level, _clr ) LOG() << ::NS()::severity_level::_level << ::NS_UTIL()::console_color::_clr
+#define LOG_TAG_BASE( _logexpr, _tag ) _logexpr << ::NS()::tag( _tag )
 #define LOG_IF_BASE( _expr, _logexpr ) if(_expr) _logexpr 
 #define LOG_EXCEPT_BASE( _logexpr ) _logexpr << "An exception was thrown: "
 #define LOG_FMT_BASE( _logexpr, _fmtstr, ...) _logexpr << ::NS_UTIL()::sprintf(_fmtstr, __VA_ARGS__)
@@ -143,6 +144,14 @@ namespace lg
 #define LOG_W() LOG_LVL_BASE(warning,	bright_yellow)
 #define LOG_I() LOG_LVL_BASE(info,		bright_white)
 #define LOG_D() LOG_LVL_BASE(debug,		bright_cyan)
+// ---
+
+// Log Macros - tagged
+#define LOG_F_TAG( _tag ) LOG_TAG_BASE(LOG_F(), _tag)
+#define LOG_E_TAG( _tag ) LOG_TAG_BASE(LOG_E(), _tag)
+#define LOG_W_TAG( _tag ) LOG_TAG_BASE(LOG_W(), _tag)
+#define LOG_I_TAG( _tag ) LOG_TAG_BASE(LOG_I(), _tag)
+#define LOG_D_TAG( _tag ) LOG_TAG_BASE(LOG_D(), _tag)
 // ---
 
 // Log Macros - bare

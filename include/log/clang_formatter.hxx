@@ -13,58 +13,19 @@
 	WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-/*	PROTOCOL:
- *	
- *	[u8]	Length of message string
- *	[u8]	Length of source string
- *	[u8]	Length of tag string
- *  [u8]	Level
- *	[u8]	Is Bare? (0x1 or 0x0)
- *	[u64]	Timestamp (time_t)
- *	N*[u8]	String payload
- *	M*[u8]	Source payload
- *	K*[u8]	Tag payload
- */
-
-
 #pragma once
 
 #include <string>
-
-#include "log_target.hxx"
-#include "log_entry.hxx"
+#include <ostream>
 
 namespace lg
 {
-	class network_target
-		: public log_target
+	class log_entry;
+	
+	// A formatter that mimics the diagnostics style of clang.
+	class clang_formatter
 	{
-		using handle_type = void*;
-
 		public:
-			network_target()
-				: log_target(severity_level::debug)
-			{}
-
-			network_target(severity_level p_lvl, const ::std::string& p_host, const ::std::string& p_port, const ::std::string& p_src = ::std::string{});
-			~network_target();
-
-			network_target(const network_target&) = delete;
-			network_target(network_target&&) = default;
-
-			network_target& operator=(const network_target&) = delete;
-			network_target& operator=(network_target&&) = default;
-
-		public:
-			virtual void write(const log_entry& entry) override;
-
-		private:
-			auto connect() -> void;
-
-		private:
-			::std::string m_Host;
-			::std::string m_Port;
-			::std::string m_Src;
-			handle_type m_InternalData{nullptr};
+			void operator()(std::ostream&, const log_entry&);
 	};
 }

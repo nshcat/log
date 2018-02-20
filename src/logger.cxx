@@ -126,19 +126,33 @@ namespace lg
 				// Begin critical section
 				{
 					std::lock_guard<std::mutex> lck(m_DataMutex);
-					
-					while(!m_TempQueue.empty())
-					{
-						dispatch(m_TempQueue.front());
-						m_TempQueue.pop();
-					}			
+					dispatch_all(m_TempQueue);		
 				}
 				// End critical section
 				
 				
 				// Reset local work indicator
 				t_hasWork = false;
-			}
+			}	
+		}
+		
+		// A shutdown was requested. Take queue lock and dispatch last
+		// remaining entries. We maintain the lock and do not swap here
+		// since we can take as much time as we want.
+		{
+			std::lock_guard<std::recursive_mutex> qlck(m_Mtx);
+			dispatch_all(m_WorkQueue);
+		}
+		
+	}
+	
+	// Dispatch all log entries contained in given queue
+	void logger::dispatch_all(queue_type& p_queue)
+	{
+		while(!p_queue.empty())
+		{
+			dispatch(p_queue.front());
+			p_queue.pop();
 		}
 	}
 	

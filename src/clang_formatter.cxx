@@ -13,58 +13,50 @@
 	WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-/*	PROTOCOL:
- *	
- *	[u8]	Length of message string
- *	[u8]	Length of source string
- *	[u8]	Length of tag string
- *  [u8]	Level
- *	[u8]	Is Bare? (0x1 or 0x0)
- *	[u64]	Timestamp (time_t)
- *	N*[u8]	String payload
- *	M*[u8]	Source payload
- *	K*[u8]	Tag payload
- */
+#include <iomanip>
+#include <algorithm>
+#include <cctype>
+#include <ut/console_color.hxx>
 
-
-#pragma once
-
-#include <string>
-
-#include "log_target.hxx"
+#include "clang_formatter.hxx"
 #include "log_entry.hxx"
 
 namespace lg
 {
-	class network_target
-		: public log_target
+	void clang_formatter::operator()(std::ostream& str, const log_entry& entry)
 	{
-		using handle_type = void*;
-
-		public:
-			network_target()
-				: log_target(severity_level::debug)
-			{}
-
-			network_target(severity_level p_lvl, const ::std::string& p_host, const ::std::string& p_port, const ::std::string& p_src = ::std::string{});
-			~network_target();
-
-			network_target(const network_target&) = delete;
-			network_target(network_target&&) = default;
-
-			network_target& operator=(const network_target&) = delete;
-			network_target& operator=(network_target&&) = default;
-
-		public:
-			virtual void write(const log_entry& entry) override;
-
-		private:
-			auto connect() -> void;
-
-		private:
-			::std::string m_Host;
-			::std::string m_Port;
-			::std::string m_Src;
-			handle_type m_InternalData{nullptr};
-	};
+		if (entry.bare())
+		{
+			str << std::setw(12)
+				<< " ";
+		}
+		else
+		{
+			// Retrieve level string and transform to lower case only
+			auto t_lvl = entry.level_string();
+			
+			std::transform(t_lvl.begin(), t_lvl.end(), t_lvl.begin(),
+				[](char c) -> char
+				{
+					return static_cast<char>(std::tolower(c));
+				}
+			);
+			
+			// Output tag if available
+			if(!entry.tag().empty())
+			{
+				str << entry.tag() << ": ";
+			}
+			
+			// Output message level
+			str << ut::foreground(entry.color())
+				<< t_lvl
+				<< ut::reset_color
+				<< ": ";
+		}
+		str	<< entry.message()
+			<< "\n";
+			
+		str.flush();
+	}
 }

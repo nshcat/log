@@ -90,7 +90,7 @@ namespace lg
 	{
 		// Calculate size of packet
 		
-		// The string length field is only 4 bytes wide, so we need
+		// The string length field is only 1 byte wide, so we need
 		// to truncate the message if needed
 		const ::std::size_t t_szStr = ::std::min<::std::size_t>(
 			p_entry.message().length(),
@@ -101,9 +101,14 @@ namespace lg
 			m_Src.length(),
 			::std::numeric_limits<::std::uint8_t>::max()
 		);
+		
+		const ::std::size_t t_szTag = ::std::min<::std::size_t>(
+			p_entry.tag().length(),
+			::std::numeric_limits<::std::uint8_t>::max()
+		);
 
-		const ::std::size_t t_szFixed = 12; // Fixed part of packet
-		const ::std::size_t t_sz = t_szStr + t_szSrc + t_szFixed;
+		const ::std::size_t t_szFixed = 13; // Fixed part of packet
+		const ::std::size_t t_sz = t_szStr + t_szSrc + t_szTag + t_szFixed;
 
 		// Create buffer for packet
 		::std::ostringstream t_stream{};
@@ -111,12 +116,14 @@ namespace lg
 		// Write data
 		ut::to_bytes_be<::std::uint8_t>(t_stream, t_szStr);
 		ut::to_bytes_be<::std::uint8_t>(t_stream, t_szSrc);
+		ut::to_bytes_be<::std::uint8_t>(t_stream, t_szTag);
 		ut::to_bytes_be<::std::uint8_t>(t_stream, ut::enum_cast(p_entry.level()));
 		ut::to_bytes_be<::std::uint8_t>(t_stream, (p_entry.bare() ? 1u : 0u));
 		ut::to_bytes_be<::std::uint64_t>(t_stream, p_entry.time());
 		
 		t_stream.write(p_entry.message().data(), t_szStr);
 		t_stream.write(m_Src.data(), t_szSrc);
+		t_stream.write(p_entry.tag().data(), t_szTag);
 
 		const auto t_result = t_stream.str();
 

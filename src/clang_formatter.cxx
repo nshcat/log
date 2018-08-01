@@ -23,12 +23,27 @@
 
 namespace lg
 {
+	void clang_formatter::update_width(const log_entry& entry)
+	{
+		::std::size_t t_width{ };
+		
+		if(!entry.tag().empty())
+			t_width += entry.tag().length() + 2; // Colon and whitespace
+			
+		t_width += entry.level_string().length() + 2; // Colo
+		
+		this->m_LastHeaderWidth = t_width;
+	}
+
 	void clang_formatter::operator()(std::ostream& str, const log_entry& entry)
 	{
 		if (entry.bare())
 		{
-			str << std::setw(12)
-				<< " ";
+			if(m_Indent)
+			{
+				str << std::setw(this->m_LastHeaderWidth)
+					<< " ";
+			}
 		}
 		else
 		{
@@ -53,6 +68,8 @@ namespace lg
 				<< t_lvl
 				<< ut::reset_color
 				<< ": ";
+				
+			update_width(entry);
 		}
 		str	<< entry.message()
 			<< "\n";

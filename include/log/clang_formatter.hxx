@@ -26,6 +26,22 @@ namespace lg
 	class clang_formatter
 	{
 		public:
+			clang_formatter() = default;
+			
+			clang_formatter(bool p_indent)
+				: m_Indent{p_indent}
+			{
+			}
+	
+		public:
 			void operator()(std::ostream&, const log_entry&);
+			
+		protected:
+			auto update_width(const log_entry&)
+				-> void;
+			
+		protected:
+			bool m_Indent{true};
+			::std::size_t m_LastHeaderWidth{ }; //< The width of the header (tag and severity string) of the last non-bare message
 	};
 }

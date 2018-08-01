@@ -35,6 +35,13 @@ namespace lg
 			{
 
 			}
+			
+			// Construct new console target with given severity threshold and
+			// formatter instance
+			console_target(severity_level p_lvl, const Tformat& p_fmt)
+				: log_target(p_lvl), m_Formatter{p_fmt}
+			{
+			}
 
 		public:
 			// Write to standard out.
